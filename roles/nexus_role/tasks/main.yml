@@ -1,0 +1,53 @@
+---
+# tasks file for nexus_role
+- name: Install Java 8
+  ansible.builtin.yum:
+    name: java-1.8.0-openjdk
+    state: latest
+
+- name: Check if nexus dierctory exists before downloading
+  ansible.builtin.stat:
+    path: "{{ nexus_home }}/nexus"
+  register: nexus_directory
+
+- name: Download latest version of Nexus
+  ansible.builtin.get_url:
+    url: "https://download.sonatype.com/nexus/3/nexus-{{ nexus_version }}-01-unix.tar.gz"
+    dest: "{{ nexus_home }}"
+  when: not nexus_directory.stat.exists
+
+- name: Update and upgrade system packages
+  ansible.builtin.yum:
+    name: '*'
+    state: latest
+
+- name: Check archived nexus
+  ansible.builtin.stat:
+    path: "{{ nexus_home }}/nexus-{{ nexus_version }}-01-unix.tar.gz"
+  register: archived_nexus_directory
+
+- name: Extract nexus archive
+  ansible.builtin.unarchive:
+    src: "{{ nexus_home }}/nexus-{{ nexus_version }}-01-unix.tar.gz"
+    dest: "{{ nexus_home }}"
+    remote_src: yes
+  when: archived_nexus_directory.stat.exists
+
+- name: Clean up the downloaded archive
+  ansible.builtin.file:
+    path: "{{ nexus_home }}/nexus-{{ nexus_version }}-01-unix.tar.gz"
+    state: absent
+  #when: archived_nexus_directory.stat.exists
+
+- name: Check unarchived nexus with version extension
+  ansible.builtin.stat:
+    path: "{{ nexus_home }}/nexus-{{ nexus_version }}-01"
+  register: unarchived_nexus_directory
+
+- name: Rename file 
+  ansible.builtin.shell: "mv {{ nexus_home }}/nexus-{{ nexus_version }}-01 {{ nexus_home }}/nexus"
+  when: unarchived_nexus_directory.stat.exists
+
+
+- name: Start Nexus
+  ansible.builtin.shell: "sh {{ nexus_home }}/nexus/bin/nexus start"

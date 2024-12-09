@@ -1,0 +1,8 @@
+---
+- name: Configure Web Servers
+  hosts: all
+  become: yes
+  vars:
+    - package: "httpd" #the vars here overides the variable defined is in the default directory
+  roles:
+    - httpd_role #this references the directory of the role

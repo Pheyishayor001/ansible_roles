@@ -1,0 +1,28 @@
+---
+# tasks file for jenkins_role
+- name: Add Jenkins Repository
+  ansible.builtin.get_url:
+    url: https://pkg.jenkins.io/redhat/jenkins.repo
+    dest: /etc/yum.repos.d/jenkins.repo
+- name: Import the GPG Key
+  ansible.builtin.rpm_key:
+    state: present
+    key: https://pkg.jenkins.io/redhat/jenkins.io-2023.key
+- name: Upgrade packages
+  ansible.builtin.yum: 
+    name: '*'
+    state: latest
+- name: Install Java
+  ansible.builtin.yum: 
+    name: java-17-amazon-corretto
+    state: present
+- name: Install Jenkins
+  ansible.builtin.yum: 
+    name: jenkins
+    state: present
+
+- name: Start and Enable Jenkins
+  ansible.builtin.systemd: 
+    name: jenkins
+    state: started
+    enabled: yes

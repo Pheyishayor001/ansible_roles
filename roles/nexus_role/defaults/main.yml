@@ -1,0 +1,5 @@
+---
+# defaults file for nexus_role
+nexus_version: 3.45.0
+nexus_user: nexus
+nexus_home: /home/ec2-user
