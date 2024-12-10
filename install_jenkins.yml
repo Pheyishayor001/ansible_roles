@@ -1,6 +1,6 @@
 ---
 - name: Install Ansible
-  hosts: all
+  hosts: jenkins_server
   become: true
   gather_facts: true
   roles:

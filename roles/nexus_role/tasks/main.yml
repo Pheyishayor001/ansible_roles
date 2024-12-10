@@ -28,6 +28,7 @@
     mode: '0755'
     recurse: yes
 
+
 - name: Check if nexus dierctory exists before downloading
   ansible.builtin.stat:
     path: "{{ nexus_home }}/nexus" 
@@ -70,6 +71,12 @@
 - name: Rename file 
   ansible.builtin.shell: "mv {{ nexus_home }}/nexus-{{ nexus_version }}-01 {{ nexus_home }}/nexus"
   when: unarchived_nexus_directory.stat.exists
+
+
+- name: Set correct ownership for Nexus home directories
+  ansible.builtin.command:
+    cmd: chown -R {{ nexus_user }}:{{ nexus_user }} {{ nexus_home }}
+  become: yes
 
 
 ##RUNNING NEXUS AS A SERVICE
