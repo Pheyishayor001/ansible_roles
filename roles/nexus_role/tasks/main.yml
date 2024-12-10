@@ -5,9 +5,32 @@
     name: java-1.8.0-openjdk
     state: latest
 
+
+- name: Create nexus group
+  ansible.builtin.group:
+    name: "{{ nexus_user }}"
+    state: present
+
+- name: Create nexus user
+  ansible.builtin.user:
+    name: "{{ nexus_user }}"
+    group: "{{ nexus_user }}"
+    home: "/opt/nexus"
+    shell: "/bin/bash"
+    state: present
+
+- name: Ensure the home directory /opt/nexus directory exists
+  ansible.builtin.file:
+    path: "{{ nexus_home }}"
+    state: directory
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_user }}"
+    mode: '0755'
+    recurse: yes
+
 - name: Check if nexus dierctory exists before downloading
   ansible.builtin.stat:
-    path: "{{ nexus_home }}/nexus"
+    path: "{{ nexus_home }}/nexus" 
   register: nexus_directory
 
 - name: Download latest version of Nexus
@@ -23,21 +46,21 @@
 
 - name: Check archived nexus
   ansible.builtin.stat:
-    path: "{{ nexus_home }}/nexus-{{ nexus_version }}-01-unix.tar.gz"
-  register: archived_nexus_directory
+    path: "{{ nexus_home }}/nexus-{{ nexus_version }}-01-unix.tar.gz" 
+  register: archived_nexus_file
 
 - name: Extract nexus archive
   ansible.builtin.unarchive:
     src: "{{ nexus_home }}/nexus-{{ nexus_version }}-01-unix.tar.gz"
-    dest: "{{ nexus_home }}"
+    dest: "{{ nexus_home }}" 
     remote_src: yes
-  when: archived_nexus_directory.stat.exists
+  when: archived_nexus_file.stat.exists
 
 - name: Clean up the downloaded archive
   ansible.builtin.file:
     path: "{{ nexus_home }}/nexus-{{ nexus_version }}-01-unix.tar.gz"
     state: absent
-  #when: archived_nexus_directory.stat.exists
+  
 
 - name: Check unarchived nexus with version extension
   ansible.builtin.stat:
@@ -49,5 +72,24 @@
   when: unarchived_nexus_directory.stat.exists
 
 
-- name: Start Nexus
-  ansible.builtin.shell: "sh {{ nexus_home }}/nexus/bin/nexus start"
+##RUNNING NEXUS AS A SERVICE
+- name: Create a Symlink for Nexus
+  ansible.builtin.file:
+    src: "{{ nexus_home }}/nexus/bin/nexus"
+    dest: /etc/init.d/nexus
+    state: link
+
+- name: Create systemd service for Nexus
+  ansible.builtin.template: #template module is used to copy the variables specified in the  default dir
+    src: templates/nexus_config_file.j2
+    dest: /etc/systemd/system/nexus.service
+  notify: #triggers the handler below to reload upon copy
+    - Reload systemd
+
+- name: Start Nexus service
+  ansible.builtin.systemd:
+    name: nexus
+    state: started
+    enabled: yes
+    
+

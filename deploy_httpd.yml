@@ -1,6 +1,6 @@
 ---
 - name: Configure Web Servers
-  hosts: all
+  hosts: web_server
   become: yes
   vars:
     - package: "httpd" #the vars here overides the variable defined is in the default directory

@@ -1,5 +1,5 @@
 ---
 # defaults file for nexus_role
-nexus_version: 3.45.0
+nexus_version: 3.48.0
 nexus_user: nexus
-nexus_home: /home/ec2-user
+nexus_home: /opt/nexus #/home/ec2-user #the path /opt/nexus doesn't pehave as expected.
