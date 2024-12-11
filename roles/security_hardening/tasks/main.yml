@@ -1,0 +1,53 @@
+---
+# tasks file for security_hardening
+- name: Disable root ssh login
+  ansible.builtin.lineinfile:
+    path: "/etc/ssh/sshd_config"
+    line: "PermitRootLogin no"
+    state: present
+  notify:
+    - restart sshd #available in the handlers/ dir
+
+- name: ensure root ssh login has been disabled
+  ansible.builtin.lineinfile:
+    path: "/etc/ssh/sshd_config"
+    line: "PermitRootLogin yes"
+    state: absent
+  notify:
+    - restart sshd
+
+# setup firewalls with basic rules
+- name: Install firewalld
+  ansible.builtin.package: 
+    name: 
+      - firewalld
+      - python3-firewalld #point of error package not found
+    state: present
+
+- name: Start and enable firewalld
+  ansible.builtin.service: 
+    name: firewalld
+    state: started
+    enabled: yes
+
+- name: Allow http, ssh (etc) services 
+  ansible.builtin.firewalld:
+    service: "{{ item }}"
+    zone: public
+    permanent: yes
+    immediate: yes
+    state: enabled
+  loop: "{{ services }}"
+    
+- name: Allow custom other ports access
+  ansible.builtin.firewalld:
+    port: "{{ item }}"
+    zone: public
+    permanent: yes  
+    state: enabled
+    immediate: yes
+  loop: "{{ ports }}"
+
+- name: Reload firewalld to apply changes
+  ansible.builtin.command:
+    cmd: firewall-cmd --reload

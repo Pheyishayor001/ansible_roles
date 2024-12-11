@@ -1,0 +1,7 @@
+---
+- name: Update packages and harden security
+  hosts: web_server
+  become: yes
+  roles:
+    #- update_packages
+    - security_hardening

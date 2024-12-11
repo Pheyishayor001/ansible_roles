@@ -1,0 +1,13 @@
+---
+# defaults file for security_hardening
+services: 
+  - ssh
+  # - http
+  - https
+  #- postgresql
+ports:
+  - "8080/tcp"
+  - "8081/tcp"
+  - "9000/tcp"
+  - "5432/tcp"
+ansible_control_node_network: "172.31.0.0/16"
